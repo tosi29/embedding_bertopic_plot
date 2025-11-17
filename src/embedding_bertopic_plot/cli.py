@@ -17,13 +17,17 @@ def _override_embedding(config: PipelineConfig, args: argparse.Namespace) -> Non
     if args.embedding_backend:
         config.embedding.backend = args.embedding_backend
     if args.embedding_model:
-        config.embedding.model = args.embedding_model
+        backend = config.embedding.backend.lower()
+        if backend == "aws":
+            config.embedding.aws.model = args.embedding_model
+        else:
+            config.embedding.gemini.model = args.embedding_model
     if args.embedding_task_type:
-        config.embedding.task_type = args.embedding_task_type
+        config.embedding.gemini.task_type = args.embedding_task_type
     if args.embedding_api_key_env:
         config.embedding.api_key_env = args.embedding_api_key_env
     if args.embedding_region:
-        config.embedding.region = args.embedding_region
+        config.embedding.aws.region = args.embedding_region
 
 
 def _apply_path_overrides(config: PipelineConfig, args: argparse.Namespace) -> None:

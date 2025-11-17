@@ -11,6 +11,7 @@ import plotly.express as px
 class PlotConfig:
     title_prefix: str = "BERTopic Clustering (UMAP)"
     text_wrap_width: int = 40
+    show_point_text: bool = False
 
 
 def wrap_text(value: str, width: int) -> str:
@@ -37,18 +38,31 @@ def build_plot(
     label_list = list(labels)
     topic_label_list = list(topic_labels)
 
-    custom_data = list(
-        zip(wrapped_texts, wrapped_details, label_list, topic_label_list, strict=True)
-    )
+    data_frame = {
+        "x": x_coords,
+        "y": y_coords,
+        "topic": topic_label_list,
+        "text": wrapped_texts,
+        "details": wrapped_details,
+        "label": label_list,
+        "text_label": wrapped_texts,
+    }
 
-    fig = px.scatter(
-        x=x_coords,
-        y=y_coords,
-        color=topic_label_list,
-        custom_data=custom_data,
+    scatter_args = dict(
+        data_frame=data_frame,
+        x="x",
+        y="y",
+        color="topic",
+        custom_data=["text", "details", "label", "topic"],
         title=f"{config.title_prefix} from {source_name}",
         labels={"x": "Dimension 1", "y": "Dimension 2", "color": "Topic"},
     )
+    if config.show_point_text:
+        scatter_args["text"] = "text_label"
+
+    fig = px.scatter(**scatter_args)
+    if config.show_point_text:
+        fig.update_traces(textposition="top center")
 
     hovertemplate = (
         "<b>text:</b><br>%{customdata[0]}<br><br>"

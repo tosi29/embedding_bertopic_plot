@@ -7,7 +7,7 @@ from typing import Any
 import yaml
 
 from .dim_reduction import DimensionalityConfig
-from .embedding import EmbeddingConfig
+from .embedding import AWSEmbeddingConfig, EmbeddingConfig, GeminiEmbeddingConfig
 from .plotting import PlotConfig
 from .topic_modeling import BerTopicConfig
 
@@ -45,7 +45,35 @@ def load_config(path: Path) -> PipelineConfig:
     with path.open("r", encoding="utf-8") as handle:
         raw = yaml.safe_load(handle)
 
-    embedding_cfg = EmbeddingConfig(**raw.get("embedding", {}))
+    embedding_section = raw.get("embedding", {}) or {}
+    backend = embedding_section.get("backend", "gemini")
+    gemini_kwargs = dict(embedding_section.get("gemini", {}) or {})
+    aws_kwargs = dict(embedding_section.get("aws", {}) or {})
+
+    legacy_model = embedding_section.get("model")
+    if legacy_model:
+        if backend.lower() == "aws":
+            aws_kwargs.setdefault("model", legacy_model)
+        else:
+            gemini_kwargs.setdefault("model", legacy_model)
+
+    legacy_task_type = embedding_section.get("task_type")
+    if legacy_task_type:
+        gemini_kwargs.setdefault("task_type", legacy_task_type)
+
+    if "retry_delay_sec" in embedding_section:
+        gemini_kwargs.setdefault("retry_delay_sec", embedding_section["retry_delay_sec"])
+
+    legacy_region = embedding_section.get("region")
+    if legacy_region:
+        aws_kwargs.setdefault("region", legacy_region)
+
+    embedding_cfg = EmbeddingConfig(
+        backend=backend,
+        api_key_env=embedding_section.get("api_key_env"),
+        gemini=GeminiEmbeddingConfig(**gemini_kwargs),
+        aws=AWSEmbeddingConfig(**aws_kwargs),
+    )
     topic_cfg = BerTopicConfig(
         language=raw.get("topic_model", {}).get("language", "japanese"),
         umap_kwargs=raw.get("topic_model", {}).get("umap", {}),

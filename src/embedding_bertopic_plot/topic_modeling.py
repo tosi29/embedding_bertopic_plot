@@ -34,21 +34,27 @@ class BerTopicModeler(TopicModeler):
         self.config = config
 
     def fit_transform(self, texts: Sequence[str], embeddings: np.ndarray) -> TopicModelResult:
-        umap_model = umap.UMAP(
+        umap_params = dict(
             n_neighbors=15,
             n_components=5,
             min_dist=0.0,
             metric="cosine",
             random_state=42,
-            **(self.config.umap_kwargs or {}),
         )
-        hdbscan_model = hdbscan.HDBSCAN(
+        if self.config.umap_kwargs:
+            umap_params.update(self.config.umap_kwargs)
+        umap_model = umap.UMAP(**umap_params)
+
+        hdbscan_params = dict(
             min_cluster_size=5,
             metric="euclidean",
             cluster_selection_method="eom",
             prediction_data=True,
-            **(self.config.hdbscan_kwargs or {}),
         )
+        if self.config.hdbscan_kwargs:
+            hdbscan_params.update(self.config.hdbscan_kwargs)
+        hdbscan_model = hdbscan.HDBSCAN(**hdbscan_params)
+
         topic_model = BERTopic(
             umap_model=umap_model,
             hdbscan_model=hdbscan_model,
