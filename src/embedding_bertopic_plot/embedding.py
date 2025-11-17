@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import random
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Iterable, List, Protocol, Sequence
 
 import litellm
@@ -74,13 +74,24 @@ class NoOpEmbeddingProvider:
 
 
 @dataclass
-class EmbeddingConfig:
-    backend: str = "gemini"
+class GeminiEmbeddingConfig:
     model: str = "gemini-embedding-exp-03-07"
     task_type: str = "CLUSTERING"
     retry_delay_sec: float = 0.0
-    api_key_env: str | None = None
+
+
+@dataclass
+class AWSEmbeddingConfig:
+    model: str = "amazon.titan-embed-text-v2"
     region: str | None = None
+
+
+@dataclass
+class EmbeddingConfig:
+    backend: str = "gemini"
+    api_key_env: str | None = None
+    gemini: GeminiEmbeddingConfig = field(default_factory=GeminiEmbeddingConfig)
+    aws: AWSEmbeddingConfig = field(default_factory=AWSEmbeddingConfig)
 
 
 def create_provider(config: EmbeddingConfig) -> EmbeddingProvider:
@@ -90,13 +101,17 @@ def create_provider(config: EmbeddingConfig) -> EmbeddingProvider:
         if api_key is None:
             raise RuntimeError("Gemini backend requires api_key_env to be set")
         return GeminiEmbeddingProvider(
-            model=config.model,
-            task_type=config.task_type,
-            retry_delay_sec=config.retry_delay_sec,
+            model=config.gemini.model,
+            task_type=config.gemini.task_type,
+            retry_delay_sec=config.gemini.retry_delay_sec,
             api_key=api_key,
         )
     if backend == "aws":
-        return AWSEmbeddingProvider(model=config.model, api_key=api_key, region_name=config.region)
+        return AWSEmbeddingProvider(
+            model=config.aws.model,
+            api_key=api_key,
+            region_name=config.aws.region,
+        )
     if backend == "dummy":
         return DummyEmbeddingProvider()
     if backend == "none":

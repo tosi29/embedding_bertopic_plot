@@ -44,11 +44,14 @@ data:
 
 embedding:
   backend: gemini              # gemini | aws | dummy | none
-  model: gemini-embedding-exp-03-07
-  task_type: CLUSTERING        # Gemini task type
-  retry_delay_sec: 10
   api_key_env: GEMINI_API_KEY  # env var containing the API key
-  region: us-east-1            # AWS region for LiteLLM when using Bedrock
+  gemini:
+    model: gemini-embedding-exp-03-07
+    task_type: CLUSTERING      # Gemini task type
+    retry_delay_sec: 10
+  aws:
+    model: titan-text-embed
+    region: us-east-1          # AWS region for LiteLLM when using Bedrock
 
 topic_model:
   language: japanese
