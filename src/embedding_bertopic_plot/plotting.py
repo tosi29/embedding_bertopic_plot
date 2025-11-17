@@ -37,15 +37,21 @@ def build_plot(
     label_list = list(labels)
     topic_label_list = list(topic_labels)
 
-    custom_data = list(
-        zip(wrapped_texts, wrapped_details, label_list, topic_label_list, strict=True)
-    )
+    data_frame = {
+        "x": x_coords,
+        "y": y_coords,
+        "topic": topic_label_list,
+        "text": wrapped_texts,
+        "details": wrapped_details,
+        "label": label_list,
+    }
 
     fig = px.scatter(
-        x=x_coords,
-        y=y_coords,
-        color=topic_label_list,
-        custom_data=custom_data,
+        data_frame=data_frame,
+        x="x",
+        y="y",
+        color="topic",
+        custom_data=["text", "details", "label", "topic"],
         title=f"{config.title_prefix} from {source_name}",
         labels={"x": "Dimension 1", "y": "Dimension 2", "color": "Topic"},
     )
