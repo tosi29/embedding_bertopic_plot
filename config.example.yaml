@@ -8,11 +8,11 @@ data:
 
 embedding:
   backend: gemini
-  api_key_env: GEMINI_API_KEY
   gemini:
     model: gemini-embedding-001
     task_type: CLUSTERING
     retry_delay_sec: 1
+    api_key_env: GEMINI_API_KEY
   aws:
     model: amazon.titan-embed-text-v2:0
 

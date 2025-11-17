@@ -64,9 +64,12 @@ def load_config(path: Path) -> PipelineConfig:
     if "retry_delay_sec" in embedding_section:
         gemini_kwargs.setdefault("retry_delay_sec", embedding_section["retry_delay_sec"])
 
+    legacy_api_key_env = embedding_section.get("api_key_env")
+    if legacy_api_key_env and "api_key_env" not in gemini_kwargs:
+        gemini_kwargs["api_key_env"] = legacy_api_key_env
+
     embedding_cfg = EmbeddingConfig(
         backend=backend,
-        api_key_env=embedding_section.get("api_key_env"),
         gemini=GeminiEmbeddingConfig(**gemini_kwargs),
         aws=AWSEmbeddingConfig(**aws_kwargs),
     )

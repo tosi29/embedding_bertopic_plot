@@ -28,3 +28,54 @@ def test_load_config_paths(tmp_path: Path):
     assert config.embedding.backend == "dummy"
     assert config.reduction.method == "pca"
     assert config.output_path.name == "output.html"
+
+
+def test_load_config_supports_gemini_api_key_env(tmp_path: Path):
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        """
+        data:
+          path: input.json
+        embedding:
+          backend: gemini
+          gemini:
+            api_key_env: TEST_KEY
+        topic_model:
+          language: english
+        reduction:
+          method: pca
+        plot:
+          title_prefix: Test
+        output:
+          path: output.html
+        """
+    )
+
+    config = load_config(config_path)
+
+    assert config.embedding.gemini.api_key_env == "TEST_KEY"
+
+
+def test_load_config_legacy_api_key_env(tmp_path: Path):
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        """
+        data:
+          path: input.json
+        embedding:
+          backend: gemini
+          api_key_env: TEST_KEY
+        topic_model:
+          language: english
+        reduction:
+          method: pca
+        plot:
+          title_prefix: Test
+        output:
+          path: output.html
+        """
+    )
+
+    config = load_config(config_path)
+
+    assert config.embedding.gemini.api_key_env == "TEST_KEY"

@@ -17,16 +17,6 @@ def _parse_steps(value: str) -> PipelineSteps:
 def _override_embedding(config: PipelineConfig, args: argparse.Namespace) -> None:
     if args.embedding_backend:
         config.embedding.backend = args.embedding_backend
-    if args.embedding_model:
-        backend = config.embedding.backend.lower()
-        if backend == "aws":
-            config.embedding.aws.model = args.embedding_model
-        else:
-            config.embedding.gemini.model = args.embedding_model
-    if args.embedding_task_type:
-        config.embedding.gemini.task_type = args.embedding_task_type
-    if args.embedding_api_key_env:
-        config.embedding.api_key_env = args.embedding_api_key_env
 
 
 def _apply_path_overrides(config: PipelineConfig, args: argparse.Namespace) -> None:
@@ -57,17 +47,6 @@ def build_argument_parser() -> argparse.ArgumentParser:
         "--embedding-backend",
         type=str,
         help="Override embedding backend (gemini, aws, dummy, none)",
-    )
-    parser.add_argument("--embedding-model", type=str, help="Override embedding model name")
-    parser.add_argument(
-        "--embedding-task-type",
-        type=str,
-        help="Override embedding task type (for Gemini)",
-    )
-    parser.add_argument(
-        "--embedding-api-key-env",
-        type=str,
-        help="Environment variable that stores the embedding API key",
     )
     return parser
 

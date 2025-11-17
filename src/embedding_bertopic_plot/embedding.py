@@ -74,6 +74,7 @@ class GeminiEmbeddingConfig:
     model: str = "gemini-embedding-exp-03-07"
     task_type: str = "CLUSTERING"
     retry_delay_sec: float = 0.0
+    api_key_env: str | None = None
 
 
 @dataclass
@@ -84,15 +85,15 @@ class AWSEmbeddingConfig:
 @dataclass
 class EmbeddingConfig:
     backend: str = "gemini"
-    api_key_env: str | None = None
     gemini: GeminiEmbeddingConfig = field(default_factory=GeminiEmbeddingConfig)
     aws: AWSEmbeddingConfig = field(default_factory=AWSEmbeddingConfig)
 
 
 def create_provider(config: EmbeddingConfig) -> EmbeddingProvider:
     backend = config.backend.lower()
-    api_key = os.environ.get(config.api_key_env or "") if config.api_key_env else None
     if backend == "gemini":
+        api_key_env = config.gemini.api_key_env
+        api_key = os.environ.get(api_key_env or "") if api_key_env else None
         if api_key is None:
             raise RuntimeError("Gemini backend requires api_key_env to be set")
         return GeminiEmbeddingProvider(

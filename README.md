@@ -41,7 +41,6 @@ Key flags:
 - `--input` / `--output`: Override paths defined in the config file.
 - `--steps`: Choose which stages to execute; helpful for reusing cached embeddings (e.g., `--steps load,topic,reduction,plot`).
 - `--embedding-backend`: Switch providers (`gemini`, `aws`, `dummy`, `none`).
-- `--embedding-api-key-env`, `--embedding-model`: Override provider details at runtime.
 
 ## Configuration reference
 
@@ -56,8 +55,8 @@ data:
 
 embedding:
   backend: gemini              # gemini | aws | dummy | none
-  api_key_env: GEMINI_API_KEY  # env var containing the API key
   gemini:
+    api_key_env: GEMINI_API_KEY  # env var containing the Gemini API key
     model: gemini-embedding-exp-03-07
     task_type: CLUSTERING      # Gemini task type
     retry_delay_sec: 1
