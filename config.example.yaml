@@ -8,7 +8,7 @@ data:
 
 embedding:
   backend: gemini
-  model: gemini-embedding-exp-03-07
+  model: gemini-embedding-001
   task_type: CLUSTERING
   retry_delay_sec: 10
   api_key_env: GEMINI_API_KEY
