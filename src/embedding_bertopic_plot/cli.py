@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import logging
 from pathlib import Path
 from typing import Sequence
 
@@ -79,6 +80,8 @@ def build_argument_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> None:
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+
     parser = build_argument_parser()
     args = parser.parse_args(argv)
 

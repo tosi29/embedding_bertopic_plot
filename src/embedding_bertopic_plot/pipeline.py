@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List
@@ -15,6 +17,7 @@ from .plotting import build_plot
 from .topic_modeling import BerTopicModeler, run_topic_modeling
 
 BERTOPIC_OUTLIER_LABEL = "Outliers -1"
+logger = logging.getLogger(__name__)
 
 
 def _format_topic(topic_id: int, overrides: dict[int, str] | None) -> str:
@@ -29,6 +32,15 @@ def _ensure_embeddings(records: Iterable[TextRecord]) -> None:
     missing = [record for record in records if record.embedding is None]
     if missing:
         raise RuntimeError("Embeddings missing for some records; run embedding step first")
+
+
+@contextmanager
+def _log_step(step_name: str):
+    logger.info("Starting %s step", step_name)
+    try:
+        yield
+    finally:
+        logger.info("Finished %s step", step_name)
 
 
 @dataclass
@@ -71,46 +83,53 @@ def execute_pipeline(
     records: List[TextRecord] = []
     if steps.load:
         load_path = records_path or config.data.input_path
-        records = load_records(load_path, loader_config)
+        with _log_step("load"):
+            records = load_records(load_path, loader_config)
     else:
         raise ValueError("Load step is required to create records")
 
     if steps.embed and config.embedding.backend.lower() != "none":
-        provider = create_provider(config.embedding)
-        fill_missing_embeddings(records, provider)
-        if save_records:
-            dump_records(records, save_records)
+        with _log_step("embedding"):
+            provider = create_provider(config.embedding)
+            fill_missing_embeddings(records, provider)
+            if save_records:
+                dump_records(records, save_records)
+    elif steps.embed:
+        logger.info("Embedding step skipped because backend is set to 'none'")
 
     if steps.topic_model:
-        _ensure_embeddings(records)
-        topic_result = run_topic_modeling(records, BerTopicModeler(config.topic_model))
-        topic_ids = topic_result.topic_ids
+        with _log_step("topic modeling"):
+            _ensure_embeddings(records)
+            topic_result = run_topic_modeling(records, BerTopicModeler(config.topic_model))
+            topic_ids = topic_result.topic_ids
     else:
         raise ValueError("Topic modeling step is required for downstream visualization")
 
     if steps.reduction:
-        _ensure_embeddings(records)
-        reducer = create_reducer(config.reduction)
-        reduced = reduce_embeddings((record.embedding for record in records), reducer)
+        with _log_step("reduction"):
+            _ensure_embeddings(records)
+            reducer = create_reducer(config.reduction)
+            reduced = reduce_embeddings((record.embedding for record in records), reducer)
     else:
         reduced = np.zeros((len(records), 2))
 
     if steps.plot:
-        topic_labels = [
-            _format_topic(topic_id, config.topic_name_overrides)
-            for topic_id in topic_ids
-        ]
-        fig = build_plot(
-            coordinates=reduced,
-            topic_labels=topic_labels,
-            texts=[record.text for record in records],
-            details=[record.details for record in records],
-            labels=[record.label for record in records],
-            config=config.plot,
-            source_name=config.data.input_path.name,
-        )
-        config.output_path.parent.mkdir(parents=True, exist_ok=True)
-        fig.write_html(config.output_path, include_plotlyjs="cdn")
+        with _log_step("plot"):
+            topic_labels = [
+                _format_topic(topic_id, config.topic_name_overrides)
+                for topic_id in topic_ids
+            ]
+            fig = build_plot(
+                coordinates=reduced,
+                topic_labels=topic_labels,
+                texts=[record.text for record in records],
+                details=[record.details for record in records],
+                labels=[record.label for record in records],
+                config=config.plot,
+                source_name=config.data.input_path.name,
+            )
+            config.output_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.write_html(config.output_path, include_plotlyjs="cdn")
         return fig
 
     return None
