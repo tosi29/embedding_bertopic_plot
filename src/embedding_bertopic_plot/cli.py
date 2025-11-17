@@ -27,8 +27,6 @@ def _override_embedding(config: PipelineConfig, args: argparse.Namespace) -> Non
         config.embedding.gemini.task_type = args.embedding_task_type
     if args.embedding_api_key_env:
         config.embedding.api_key_env = args.embedding_api_key_env
-    if args.embedding_region:
-        config.embedding.aws.region = args.embedding_region
 
 
 def _apply_path_overrides(config: PipelineConfig, args: argparse.Namespace) -> None:
@@ -70,11 +68,6 @@ def build_argument_parser() -> argparse.ArgumentParser:
         "--embedding-api-key-env",
         type=str,
         help="Environment variable that stores the embedding API key",
-    )
-    parser.add_argument(
-        "--embedding-region",
-        type=str,
-        help="Region hint for AWS/LiteLLM based backends",
     )
     return parser
 

@@ -14,6 +14,18 @@ A modular, config-driven pipeline for loading text data, generating embeddings (
 - Dependencies are managed with [uv](https://docs.astral.sh/uv/). Create the environment via `uv sync`.
 - Set API keys as environment variables when needed (e.g., `GEMINI_API_KEY` for Gemini, AWS credentials for LiteLLM/Bedrock models).
 
+### AWS Bedrock via LiteLLM
+
+When `embedding.backend` is `aws`, LiteLLM expects the standard AWS credentials in your environment. At minimum set the following (optionally `AWS_SESSION_TOKEN` when using temporary credentials):
+
+```bash
+export AWS_ACCESS_KEY_ID=your_access_key
+export AWS_SECRET_ACCESS_KEY=your_secret
+export AWS_REGION_NAME=us-east-1
+```
+
+These variables match the [LiteLLM Bedrock embedding docs](https://docs.litellm.ai/docs/embedding/supported_embedding#bedrock-embedding). Without them the embedding step will fail because LiteLLM cannot create a Bedrock client.
+
 ## Running the pipeline
 
 1. Copy `config.example.yaml` to a new file (e.g., `config.yaml`) and adjust paths and parameters.
@@ -29,7 +41,7 @@ Key flags:
 - `--input` / `--output`: Override paths defined in the config file.
 - `--steps`: Choose which stages to execute; helpful for reusing cached embeddings (e.g., `--steps load,topic,reduction,plot`).
 - `--embedding-backend`: Switch providers (`gemini`, `aws`, `dummy`, `none`).
-- `--embedding-api-key-env`, `--embedding-region`, `--embedding-model`: Override provider details at runtime.
+- `--embedding-api-key-env`, `--embedding-model`: Override provider details at runtime.
 
 ## Configuration reference
 
@@ -50,8 +62,7 @@ embedding:
     task_type: CLUSTERING      # Gemini task type
     retry_delay_sec: 1
   aws:
-    model: titan-text-embed
-    region: us-east-1          # AWS region for LiteLLM when using Bedrock
+    model: amazon.titan-embed-text-v2:0
 
 topic_model:
   language: japanese

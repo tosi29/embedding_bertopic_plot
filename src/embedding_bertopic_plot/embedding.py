@@ -45,15 +45,11 @@ class GeminiEmbeddingProvider:
 @dataclass
 class AWSEmbeddingProvider:
     model: str
-    api_key: str | None = None
-    region_name: str | None = None
 
     def embed(self, text: str) -> list[float]:
         response = litellm.embedding(
             model=self.model,
             input=text,
-            api_key=self.api_key,
-            aws_region_name=self.region_name,
         )
         return response["data"][0]["embedding"]
 
@@ -83,7 +79,6 @@ class GeminiEmbeddingConfig:
 @dataclass
 class AWSEmbeddingConfig:
     model: str = "amazon.titan-embed-text-v2"
-    region: str | None = None
 
 
 @dataclass
@@ -109,8 +104,6 @@ def create_provider(config: EmbeddingConfig) -> EmbeddingProvider:
     if backend == "aws":
         return AWSEmbeddingProvider(
             model=config.aws.model,
-            api_key=api_key,
-            region_name=config.aws.region,
         )
     if backend == "dummy":
         return DummyEmbeddingProvider()
