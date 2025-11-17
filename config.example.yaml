@@ -42,6 +42,7 @@ reduction:
 plot:
   title_prefix: "BERTopic Clustering (UMAP)"
   text_wrap_width: 40
+  show_point_text: false
 
 output:
   path: outputs/bertopic_umap.html
