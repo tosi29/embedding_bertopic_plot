@@ -12,7 +12,7 @@ embedding:
   gemini:
     model: gemini-embedding-001
     task_type: CLUSTERING
-    retry_delay_sec: 10
+    retry_delay_sec: 1
   aws:
     model: titan-text-embed
     region: us-east-1

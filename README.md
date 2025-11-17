@@ -48,7 +48,7 @@ embedding:
   gemini:
     model: gemini-embedding-exp-03-07
     task_type: CLUSTERING      # Gemini task type
-    retry_delay_sec: 10
+    retry_delay_sec: 1
   aws:
     model: titan-text-embed
     region: us-east-1          # AWS region for LiteLLM when using Bedrock
