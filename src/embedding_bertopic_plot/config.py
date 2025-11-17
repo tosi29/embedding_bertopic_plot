@@ -1,0 +1,78 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from .dim_reduction import DimensionalityConfig
+from .embedding import EmbeddingConfig
+from .plotting import PlotConfig
+from .topic_modeling import BerTopicConfig
+
+
+@dataclass
+class DataConfig:
+    input_path: Path
+    json_text_field: str = "text"
+    json_label_field: str = "label"
+    json_details_field: str = "details"
+    json_embedding_field: str = "embedding"
+    default_label: str = "unknown"
+
+
+@dataclass
+class PipelineConfig:
+    data: DataConfig
+    embedding: EmbeddingConfig
+    topic_model: BerTopicConfig
+    reduction: DimensionalityConfig
+    plot: PlotConfig
+    output_path: Path
+    topic_name_overrides: dict[int, str] | None = None
+
+
+def _coerce_path(value: Any) -> Path:
+    if value is None:
+        raise ValueError("A file path must be provided in the configuration")
+    if isinstance(value, Path):
+        return value
+    return Path(value)
+
+
+def load_config(path: Path) -> PipelineConfig:
+    with path.open("r", encoding="utf-8") as handle:
+        raw = yaml.safe_load(handle)
+
+    embedding_cfg = EmbeddingConfig(**raw.get("embedding", {}))
+    topic_cfg = BerTopicConfig(
+        language=raw.get("topic_model", {}).get("language", "japanese"),
+        umap_kwargs=raw.get("topic_model", {}).get("umap", {}),
+        hdbscan_kwargs=raw.get("topic_model", {}).get("hdbscan", {}),
+    )
+    reduction_cfg = DimensionalityConfig(**raw.get("reduction", {}))
+    plot_cfg = PlotConfig(**raw.get("plot", {}))
+
+    data_section = raw.get("data", {})
+    data_cfg = DataConfig(
+        input_path=_coerce_path(data_section.get("path")),
+        json_text_field=data_section.get("json_text_field", "text"),
+        json_label_field=data_section.get("json_label_field", "label"),
+        json_details_field=data_section.get("json_details_field", "details"),
+        json_embedding_field=data_section.get("json_embedding_field", "embedding"),
+        default_label=data_section.get("default_label", "unknown"),
+    )
+
+    output_path = _coerce_path(raw.get("output", {}).get("path"))
+    topic_names = raw.get("topic_model", {}).get("topic_names")
+
+    return PipelineConfig(
+        data=data_cfg,
+        embedding=embedding_cfg,
+        topic_model=topic_cfg,
+        reduction=reduction_cfg,
+        plot=plot_cfg,
+        output_path=output_path,
+        topic_name_overrides=topic_names,
+    )

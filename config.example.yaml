@@ -1,0 +1,44 @@
+data:
+  path: data/input.json
+  json_text_field: text
+  json_label_field: label
+  json_details_field: details
+  json_embedding_field: embedding
+  default_label: unknown
+
+embedding:
+  backend: gemini
+  model: gemini-embedding-exp-03-07
+  task_type: CLUSTERING
+  retry_delay_sec: 10
+  api_key_env: GEMINI_API_KEY
+  region: us-east-1
+
+topic_model:
+  language: japanese
+  umap:
+    n_neighbors: 15
+    n_components: 5
+    min_dist: 0.0
+    metric: cosine
+  hdbscan:
+    min_cluster_size: 5
+    metric: euclidean
+    cluster_selection_method: eom
+  topic_names:
+    -1: "その他・外れ値"
+
+reduction:
+  method: umap
+  n_components: 2
+  n_neighbors: 15
+  min_dist: 0.1
+  metric: cosine
+  random_state: 42
+
+plot:
+  title_prefix: "BERTopic Clustering (UMAP)"
+  text_wrap_width: 40
+
+output:
+  path: outputs/bertopic_umap.html

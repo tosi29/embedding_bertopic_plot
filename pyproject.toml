@@ -1,0 +1,32 @@
+[project]
+name = "embedding-bertopic-plot"
+version = "0.1.0"
+description = "Config-driven BERTopic + embedding pipeline"
+readme = "README.md"
+authors = [
+    { name = "Codex", email = "codex@openai.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "bertopic>=0.17.3",
+    "google-genai>=1.50.1",
+    "hdbscan>=0.8.40",
+    "litellm>=1.80.0",
+    "numpy>=2.3.4",
+    "plotly>=6.4.0",
+    "pyyaml>=6.0.3",
+    "scikit-learn>=1.7.2",
+    "umap-learn>=0.5.9.post2",
+]
+
+[project.scripts]
+topic-pipeline = "embedding_bertopic_plot.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.1",
+]
