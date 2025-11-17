@@ -34,12 +34,18 @@ def build_plot(
 
     wrapped_texts = [wrap_text(text, config.text_wrap_width) for text in texts]
     wrapped_details = [wrap_text(detail, config.text_wrap_width) for detail in details]
+    label_list = list(labels)
+    topic_label_list = list(topic_labels)
+
+    custom_data = list(
+        zip(wrapped_texts, wrapped_details, label_list, topic_label_list, strict=True)
+    )
 
     fig = px.scatter(
         x=x_coords,
         y=y_coords,
-        color=topic_labels,
-        custom_data=[wrapped_texts, wrapped_details, list(labels), list(topic_labels)],
+        color=topic_label_list,
+        custom_data=custom_data,
         title=f"{config.title_prefix} from {source_name}",
         labels={"x": "Dimension 1", "y": "Dimension 2", "color": "Topic"},
     )
