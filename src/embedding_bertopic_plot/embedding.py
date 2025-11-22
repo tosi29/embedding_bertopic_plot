@@ -78,7 +78,7 @@ class GeminiEmbeddingConfig:
 
 @dataclass
 class AWSEmbeddingConfig:
-    model: str = "amazon.titan-embed-text-v2"
+    model: str = "amazon.titan-embed-text-v2:0"
 
 
 @dataclass
@@ -102,6 +102,14 @@ def create_provider(config: EmbeddingConfig) -> EmbeddingProvider:
             api_key=api_key,
         )
     if backend == "aws":
+        required_env_vars = ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_REGION_NAME"]
+        missing = [var for var in required_env_vars if not os.environ.get(var)]
+        if missing:
+            missing_list = ", ".join(missing)
+            raise RuntimeError(
+                "AWS backend requires the following environment variables to be set: "
+                f"{missing_list}"
+            )
         return AWSEmbeddingProvider(
             model=config.aws.model,
         )
